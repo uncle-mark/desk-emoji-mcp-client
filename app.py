@@ -16,9 +16,10 @@ from dataclasses import dataclass
 from tkinter import messagebox, ttk
 from typing import Any, Callable
 
+from desk_emoji_sdk import APP_VERSION
+
 
 JSONDict = dict[str, Any]
-APP_VERSION = "v4.0.0"
 COPYRIGHT_URL = "https://ewen.ltd"
 
 

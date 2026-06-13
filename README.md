@@ -1,6 +1,6 @@
 # Desk-Emoji MCP Client
 
-这是一个用于 Desk Emoji 的 MCP 图形客户端。它可以在局域网内自动发现或主动扫描 MCP server，勾选多个 server 后统一连接，并把 MCP 工具调用广播到所有已连接设备，实现多设备联控。
+这是一个用于 Desk Emoji 的 MCP 图形客户端和 Python SDK。它可以在局域网内自动发现或主动扫描 MCP server，勾选多个 server 后统一连接，并把 MCP 工具调用广播到所有已连接设备，实现多设备联控。
 
 ## 功能
 
@@ -10,6 +10,7 @@
 - 快捷联控：提供音频、头部、表情、时钟、设置菜单和字符显示等常用控制。
 - 工具列表：连接后可发送 `tools/list`，合并显示所有 server 返回的工具 schema。
 - 日志：显示连接、发送、接收、发现和错误信息。
+- Python SDK：通过 `desk_emoji_sdk.py` 在脚本中连接、扫描和控制 Desk-Emoji MCP 设备。
 
 ## 安装依赖
 
@@ -26,6 +27,20 @@ python3 -m pip install -r requirements.txt
 cd mcp_gui_client
 python3 app.py
 ```
+
+## SDK 使用
+
+SDK 可用于脚本或第三方应用集成：
+
+```python
+from desk_emoji_sdk import DeskEmojiClient
+
+with DeskEmojiClient("ws://192.168.1.20:8765/mcp") as client:
+    client.initialize()
+    client.call_tool("self.head.center")
+```
+
+完整说明见 [docs/sdk.md](docs/sdk.md)。
 
 ## 使用流程
 
@@ -51,7 +66,7 @@ python3 app.py
   "ip": "192.168.1.20",
   "port": 8765,
   "path": "/mcp",
-  "version": "v4.0.0"
+  "version": "v4.1.0"
 }
 ```
 
