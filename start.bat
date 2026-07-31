@@ -46,11 +46,11 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo Checking tkinter ...
-python -c "import tkinter"
+echo Checking CustomTkinter/tkinter runtime ...
+python -c "import tkinter; import customtkinter"
 if errorlevel 1 (
-    echo tkinter is not available in this Python installation.
-    echo Please install a Python distribution that includes tkinter.
+    echo CustomTkinter or tkinter is not available in this Python installation.
+    echo Please install dependencies and a Python distribution that includes tkinter.
     pause
     exit /b 1
 )

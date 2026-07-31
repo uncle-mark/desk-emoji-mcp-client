@@ -22,3 +22,4 @@ htmlcov/
 *.coveragerc
 *.pytest_cache/
 .pytest_cache/
+logs/
