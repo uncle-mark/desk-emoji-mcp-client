@@ -7,7 +7,7 @@ Desk-Emoji MCP 客户端 是一个面向 Desk Emoji 设备的 WebSocket MCP 图�
 - UDP 自动发现：监听 `desk-emoji.mcp.announce` 广播并自动加入候选 MCP 设备。
 - 局域网扫描：按网段、端口和内置 WebSocket 路径探测可用 MCP 设备。
 - 多设备连接：候选 server 以复选框列出，支持全选、连接和断开。
-- 快捷联控：提供音频、头部、表情、时钟、设置菜单和字符显示等常用控制。
+- 快捷联控：提供声音、头部、表情、时钟、设置菜单和字符显示等常用控制。
 - 工具列表：连接后可发送 `tools/list`，勾选 `withUserTools: true` 后合并显示普通工具和用户工具。
 - 调试日志：显示连接、发送、接收、发现和错误信息。
 - Python SDK：通过 `desk_emoji_sdk.py` 在脚本中连接、扫描、发现和控制 Desk-Emoji MCP 设备。
@@ -100,7 +100,7 @@ python app.py
 
 `控制` 页右侧的快捷控制会调用以下 MCP 工具，并广播到所有已连接 server：
 
-- 音频：`self.audio_speaker.set_volume`、`self.audio_speaker.set_mute`、`self.audio_speaker.play_sound`、`self.voice.start_listening`、`self.voice.stop_listening`
+- 声音：`self.audio_speaker.set_volume`、`self.audio_speaker.set_mute`、`self.audio_speaker.play_sound`、`self.voice.start_listening`、`self.voice.stop_listening`
 - 头部：`self.head.turn`、`self.head.center`、`self.head.nod`、`self.head.shake`、`self.head.roll`
 - 表情：`self.emoji.play_gif`、`self.emoji.random_gif`、`self.emoji.set_eye`
 - 模式：`self.clock.show_brief`、`self.clock.start_mode`、`self.clock.stop_mode`、`self.settings_menu.start_mode`、`self.settings_menu.stop_mode`

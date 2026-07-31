@@ -494,7 +494,7 @@ class McpGui(ctk.CTk):
     def _build_quick_controls(self, tab: Any) -> None:
         tab.columnconfigure(0, weight=1)
 
-        audio = self._section(tab, "音频")
+        audio = self._section(tab, "声音")
         audio.grid(row=0, column=0, padx=0, pady=(0, 10), sticky="ew")
         self.configure_equal_columns(audio)
         ctk.CTkLabel(audio, text="音量").grid(row=1, column=0, padx=12, pady=8, sticky="w")
@@ -507,7 +507,7 @@ class McpGui(ctk.CTk):
         ctk.CTkButton(audio, text="停止聆听", command=lambda: self.call_tool_all("self.voice.stop_listening", {})).grid(row=3, column=2, padx=12, pady=8, sticky="ew")
 
         head = self._section(tab, "头部")
-        head.grid(row=1, column=0, padx=0, pady=(10, 0), sticky="ew")
+        head.grid(row=2, column=0, padx=0, pady=(10, 0), sticky="ew")
         self.configure_equal_columns(head)
         ctk.CTkLabel(head, text="方向").grid(row=1, column=0, padx=12, pady=8, sticky="w")
         ctk.CTkComboBox(head, variable=self.direction_var, values=["left", "right", "up", "down"], state="readonly").grid(row=1, column=1, padx=8, pady=8, sticky="ew")
@@ -521,7 +521,7 @@ class McpGui(ctk.CTk):
         ctk.CTkButton(head, text="右滚", command=lambda: self.call_tool_all("self.head.roll", {"direction": "right"})).grid(row=4, column=2, padx=8, pady=(0, 12), sticky="ew")
 
         emoji = self._section(tab, "表情")
-        emoji.grid(row=2, column=0, padx=0, pady=(10, 0), sticky="ew")
+        emoji.grid(row=1, column=0, padx=0, pady=(10, 0), sticky="ew")
         self.configure_equal_columns(emoji)
         ctk.CTkLabel(emoji, text="GIF").grid(row=1, column=0, padx=12, pady=8, sticky="w")
         ctk.CTkEntry(emoji, textvariable=self.gif_name_var).grid(row=1, column=1, padx=8, pady=8, sticky="ew")

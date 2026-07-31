@@ -85,7 +85,7 @@ with DeskEmojiGroup(urls) as group:
 
 单设备 `DeskEmojiClient` 和多设备 `DeskEmojiGroup` 都支持以下常用封装：
 
-- 音频：`set_volume(volume)`、`set_mute(mute)`、`play_sound(name)`、`start_listening()`、`stop_listening()`
+- 声音：`set_volume(volume)`、`set_mute(mute)`、`play_sound(name)`、`start_listening()`、`stop_listening()`
 - 头部：`turn_head(direction, offset=10)`、`center_head()`、`nod_head(loop_count=3)`、`shake_head(loop_count=3)`、`roll_head(direction)`
 - 表情：`play_gif(name, loop_count=3, frame_delay_ms=10, hold_sec=0)`、`random_gif(...)`、`set_eye(expression="blink", hold_sec=0)`
 - 模式：`show_clock_brief()`、`start_clock_mode()`、`stop_clock_mode()`、`start_settings_menu()`、`stop_settings_menu()`
