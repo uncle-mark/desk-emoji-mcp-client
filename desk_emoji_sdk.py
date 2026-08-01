@@ -15,7 +15,7 @@ from urllib.parse import urlparse
 
 
 JSONDict = dict[str, Any]
-APP_VERSION = "v4.3.0"
+APP_VERSION = "v4.3.1"
 DEFAULT_DISCOVERY_PORT = 37654
 DEFAULT_SCAN_PORTS = (8765, 8000, 8080, 9000)
 DEFAULT_SCAN_PATHS = ("/mcp", "/", "/xiaozhi/v1/")

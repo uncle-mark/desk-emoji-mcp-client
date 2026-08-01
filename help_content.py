@@ -7,14 +7,31 @@ from pathlib import Path
 from typing import Any
 
 
-HELP_DOC_PATH = Path(__file__).parent / "docs" / "操作手册.md"
+HELP_DOC_DIR = Path(__file__).parent / "docs"
 
 
-def load_help_markdown() -> str:
+def list_help_documents() -> list[str]:
+    return sorted((path.stem for path in HELP_DOC_DIR.glob("*.md") if path.is_file()), reverse=True)
+
+
+def load_help_markdown(document_name: str | None = None) -> str:
+    documents = {path.stem: path for path in HELP_DOC_DIR.glob("*.md") if path.is_file()}
+    if not documents:
+        return "# 帮助\n\n未找到帮助文档。"
+
+    if document_name not in documents:
+        document_name = _default_document_name(documents)
+
     try:
-        return HELP_DOC_PATH.read_text(encoding="utf-8")
+        return documents[document_name].read_text(encoding="utf-8")
     except OSError as exc:
         return f"# 帮助\n\n无法读取帮助文档：{exc}"
+
+
+def _default_document_name(documents: dict[str, Path]) -> str:
+    if "操作手册" in documents:
+        return "操作手册"
+    return sorted(documents)[0]
 
 
 def configure_help_tags(textbox: Any) -> None:
@@ -69,8 +86,6 @@ def render_help_markdown(textbox: Any, markdown: str) -> None:
             continue
 
         _insert_line(textbox, _clean_inline_markdown(stripped), "paragraph")
-
-    textbox.configure(state="disabled")
 
 
 def _insert_line(textbox: Any, text: str, tag: str) -> None:

@@ -24,7 +24,7 @@ from PIL import Image
 from desk_emoji_sdk import APP_VERSION
 from desk_emoji_sdk import ServerCandidate as SdkServerCandidate
 from desk_emoji_sdk import discover_servers, receive_udp_announcements
-from help_content import configure_help_tags, load_help_markdown, render_help_markdown
+from help_content import configure_help_tags, list_help_documents, load_help_markdown, render_help_markdown
 
 
 JSONDict = dict[str, Any]
@@ -280,6 +280,8 @@ class McpGui(ctk.CTk):
         self.tools: dict[str, JSONDict] = {}
         self.tool_buttons: dict[str, ctk.CTkButton] = {}
         self.selected_tool_name: str | None = None
+        self.pending_tool_call_id: int | None = None
+        self.pending_tool_call: JSONDict | None = None
 
         self._build_vars()
         self._build_ui()
@@ -340,6 +342,7 @@ class McpGui(ctk.CTk):
         self.ota_url_var = tk.StringVar(value="")
         self.text_input: Any | None = None
         self.gesture_var = tk.BooleanVar(value=True)
+        self.help_document_var = tk.StringVar(value="")
 
     def _build_ui(self) -> None:
         self.grid_columnconfigure(1, weight=1)
@@ -637,15 +640,20 @@ class McpGui(ctk.CTk):
         right.columnconfigure(0, weight=1)
         right.rowconfigure(1, weight=1)
         right.rowconfigure(3, weight=1)
+        right.rowconfigure(5, weight=1)
         ctk.CTkLabel(right, text="工具说明", anchor="w", font=ctk.CTkFont(size=15, weight="bold")).grid(row=0, column=0, padx=12, pady=(12, 8), sticky="w")
         self.schema_text = ctk.CTkTextbox(right, height=220, wrap="word")
         self.schema_text.grid(row=1, column=0, padx=12, pady=(0, 8), sticky="nsew")
         self.configure_readonly_textbox(self.schema_text)
-        ctk.CTkLabel(right, text="调用参数", anchor="w", font=ctk.CTkFont(size=15, weight="bold")).grid(row=2, column=0, padx=12, pady=(4, 8), sticky="w")
+        ctk.CTkLabel(right, text="返回数据", anchor="w", font=ctk.CTkFont(size=15, weight="bold")).grid(row=2, column=0, padx=12, pady=(4, 8), sticky="w")
+        self.tool_result_text = ctk.CTkTextbox(right, height=180, wrap="word")
+        self.tool_result_text.grid(row=3, column=0, padx=12, pady=(0, 8), sticky="nsew")
+        self.configure_readonly_textbox(self.tool_result_text)
+        ctk.CTkLabel(right, text="调用参数", anchor="w", font=ctk.CTkFont(size=15, weight="bold")).grid(row=4, column=0, padx=12, pady=(4, 8), sticky="w")
         self.arguments_text = ctk.CTkTextbox(right, height=160, wrap="word")
-        self.arguments_text.grid(row=3, column=0, padx=12, pady=(0, 12), sticky="nsew")
+        self.arguments_text.grid(row=5, column=0, padx=12, pady=(0, 12), sticky="nsew")
         tool_actions = ctk.CTkFrame(right, fg_color="transparent")
-        tool_actions.grid(row=4, column=0, padx=12, pady=(0, 12), sticky="ew")
+        tool_actions.grid(row=6, column=0, padx=12, pady=(0, 12), sticky="ew")
         tool_actions.columnconfigure(0, weight=1)
         ctk.CTkButton(tool_actions, text="重置参数", width=120, command=self.reset_selected_tool_arguments).grid(row=0, column=0, sticky="w")
         ctk.CTkButton(tool_actions, text="调用工具", width=120, command=self.call_selected_tool).grid(row=0, column=1, padx=(8, 0), sticky="e")
@@ -670,8 +678,11 @@ class McpGui(ctk.CTk):
         tab.columnconfigure(0, weight=1)
         tab.rowconfigure(0, weight=1)
 
-        self.help_text = ctk.CTkTextbox(tab, wrap="word")
-        self.help_text.grid(row=0, column=0, padx=20, pady=(20, 8), sticky="nsew")
+        self.help_tab_names: list[str] = []
+        self.help_tabs = ctk.CTkTabview(tab, command=self.on_help_document_selected)
+        self.help_tabs.grid(row=0, column=0, padx=20, pady=(20, 8), sticky="nsew")
+
+        self.help_text = ctk.CTkTextbox(self.help_tabs, wrap="word")
         configure_help_tags(self.help_text)
         self.configure_readonly_textbox(self.help_text)
         self.reload_help_page()
@@ -689,7 +700,45 @@ class McpGui(ctk.CTk):
         copyright_label.bind("<Button-1>", lambda event: self.open_copyright_link())
 
     def reload_help_page(self) -> None:
-        render_help_markdown(self.help_text, load_help_markdown())
+        documents = list_help_documents()
+        selected = self.help_document_var.get()
+
+        self.help_text.grid_forget()
+        for tab_name in self.help_tab_names:
+            self.help_tabs.delete(tab_name)
+        self.help_tab_names = []
+
+        for document_name in documents:
+            document_tab = self.help_tabs.add(document_name)
+            document_tab.grid_columnconfigure(0, weight=1)
+            document_tab.grid_rowconfigure(0, weight=1)
+            self.help_tab_names.append(document_name)
+
+        if documents:
+            if selected not in documents:
+                selected = documents[0]
+            self.help_document_var.set(selected)
+            self.help_tabs.set(selected)
+            self.help_text.grid(in_=self.help_tabs.tab(selected), row=0, column=0, padx=0, pady=(0, 8), sticky="nsew")
+        else:
+            fallback_tab_name = "帮助"
+            fallback_tab = self.help_tabs.add(fallback_tab_name)
+            fallback_tab.grid_columnconfigure(0, weight=1)
+            fallback_tab.grid_rowconfigure(0, weight=1)
+            self.help_tab_names.append(fallback_tab_name)
+            self.help_document_var.set("")
+            self.help_tabs.set(fallback_tab_name)
+            self.help_text.grid(in_=fallback_tab, row=0, column=0, padx=0, pady=(0, 8), sticky="nsew")
+            selected = None
+        render_help_markdown(self.help_text, load_help_markdown(selected))
+        self.help_text.configure(state="normal")
+
+    def on_help_document_selected(self) -> None:
+        document_name = self.help_tabs.get()
+        self.help_document_var.set(document_name)
+        self.help_text.grid_forget()
+        self.help_text.grid(in_=self.help_tabs.tab(document_name), row=0, column=0, padx=0, pady=(0, 8), sticky="nsew")
+        render_help_markdown(self.help_text, load_help_markdown(document_name))
         self.help_text.configure(state="normal")
 
     def open_copyright_link(self) -> None:
@@ -901,6 +950,9 @@ class McpGui(ctk.CTk):
             if isinstance(next_cursor, str) and next_cursor:
                 self.send_tools_list_page(url, next_cursor)
         else:
+            payload_id = payload.get("id")
+            if payload_id == self.pending_tool_call_id:
+                self.append_tool_result(url, payload)
             self._append_log(f"Payload from {url}: {pretty_json(payload)}")
 
     def broadcast_payload(self, payload: JSONDict) -> None:
@@ -993,6 +1045,38 @@ class McpGui(ctk.CTk):
         }
         self.safe_broadcast(payload)
 
+    def call_tool_all_with_result(self, name: str, arguments: JSONDict) -> None:
+        request_id = self.next_request_id()
+        payload = {
+            "jsonrpc": "2.0",
+            "method": "tools/call",
+            "params": {"name": name, "arguments": arguments},
+            "id": request_id,
+        }
+        self.pending_tool_call_id = request_id
+        self.pending_tool_call = {
+            "name": name,
+            "arguments": arguments,
+            "sent_at": time.time(),
+        }
+        self.set_tool_result(
+            "等待 MCP 设备返回...\n\n"
+            + pretty_json(
+                {
+                    "id": request_id,
+                    "method": "tools/call",
+                    "name": name,
+                    "arguments": arguments,
+                }
+            )
+        )
+        try:
+            self.broadcast_payload(payload)
+        except Exception as exc:
+            self.set_tool_result(f"发送失败: {exc}")
+            messagebox.showerror("发送失败", str(exc))
+            self._append_log(f"Broadcast failed: {exc}")
+
     def safe_broadcast(self, payload: JSONDict) -> None:
         try:
             self.broadcast_payload(payload)
@@ -1059,12 +1143,26 @@ class McpGui(ctk.CTk):
 
     def show_tools_overview(self) -> None:
         self.set_tool_description("")
+        self.set_tool_result("")
         self.arguments_text.delete("1.0", "end")
         self.arguments_text.insert("1.0", "{}")
 
     def set_tool_description(self, text: str) -> None:
         self.schema_text.delete("1.0", "end")
         self.schema_text.insert("1.0", text)
+
+    def set_tool_result(self, text: str) -> None:
+        self.tool_result_text.delete("1.0", "end")
+        self.tool_result_text.insert("1.0", text)
+
+    def append_tool_result(self, url: str, payload: JSONDict) -> None:
+        current = self.tool_result_text.get("1.0", "end-1c").strip()
+        if current.startswith("等待 MCP 设备返回..."):
+            self.tool_result_text.delete("1.0", "end")
+        elif current:
+            self.tool_result_text.insert("end", "\n\n")
+        self.tool_result_text.insert("end", f"{url}\n{pretty_json(payload)}")
+        self.tool_result_text.see("end")
 
     def on_tool_selected(self, name: str | None = None) -> None:
         if not name:
@@ -1105,7 +1203,7 @@ class McpGui(ctk.CTk):
         if not isinstance(arguments, dict):
             messagebox.showerror("Arguments JSON 格式错误", "Arguments JSON 必须是 JSON object")
             return
-        self.call_tool_all(self.selected_tool_name, arguments)
+        self.call_tool_all_with_result(self.selected_tool_name, arguments)
 
 def main() -> None:
     app = McpGui()
