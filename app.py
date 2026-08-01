@@ -679,12 +679,11 @@ class McpGui(ctk.CTk):
         tab.rowconfigure(0, weight=1)
 
         self.help_tab_names: list[str] = []
+        self.help_textboxes: dict[str, ctk.CTkTextbox] = {}
         self.help_tabs = ctk.CTkTabview(tab, command=self.on_help_document_selected)
         self.help_tabs.grid(row=0, column=0, padx=20, pady=(20, 8), sticky="nsew")
 
-        self.help_text = ctk.CTkTextbox(self.help_tabs, wrap="word")
-        configure_help_tags(self.help_text)
-        self.configure_readonly_textbox(self.help_text)
+        self.help_text: ctk.CTkTextbox | None = None
         self.reload_help_page()
 
         footer = ctk.CTkFrame(tab, fg_color="transparent")
@@ -703,15 +702,19 @@ class McpGui(ctk.CTk):
         documents = list_help_documents()
         selected = self.help_document_var.get()
 
-        self.help_text.grid_forget()
         for tab_name in self.help_tab_names:
             self.help_tabs.delete(tab_name)
         self.help_tab_names = []
+        self.help_textboxes = {}
 
         for document_name in documents:
             document_tab = self.help_tabs.add(document_name)
             document_tab.grid_columnconfigure(0, weight=1)
             document_tab.grid_rowconfigure(0, weight=1)
+            textbox = self._build_help_textbox(document_tab)
+            render_help_markdown(textbox, load_help_markdown(document_name))
+            textbox.configure(state="normal")
+            self.help_textboxes[document_name] = textbox
             self.help_tab_names.append(document_name)
 
         if documents:
@@ -719,27 +722,35 @@ class McpGui(ctk.CTk):
                 selected = documents[0]
             self.help_document_var.set(selected)
             self.help_tabs.set(selected)
-            self.help_text.grid(in_=self.help_tabs.tab(selected), row=0, column=0, padx=0, pady=(0, 8), sticky="nsew")
+            self.help_text = self.help_textboxes[selected]
         else:
             fallback_tab_name = "帮助"
             fallback_tab = self.help_tabs.add(fallback_tab_name)
             fallback_tab.grid_columnconfigure(0, weight=1)
             fallback_tab.grid_rowconfigure(0, weight=1)
+            textbox = self._build_help_textbox(fallback_tab)
+            render_help_markdown(textbox, load_help_markdown(None))
+            textbox.configure(state="normal")
+            self.help_textboxes[fallback_tab_name] = textbox
             self.help_tab_names.append(fallback_tab_name)
             self.help_document_var.set("")
             self.help_tabs.set(fallback_tab_name)
-            self.help_text.grid(in_=fallback_tab, row=0, column=0, padx=0, pady=(0, 8), sticky="nsew")
+            self.help_text = textbox
             selected = None
-        render_help_markdown(self.help_text, load_help_markdown(selected))
-        self.help_text.configure(state="normal")
+
+    def _build_help_textbox(self, parent: Any) -> ctk.CTkTextbox:
+        textbox = ctk.CTkTextbox(parent, wrap="word")
+        textbox.grid(row=0, column=0, padx=0, pady=(0, 8), sticky="nsew")
+        configure_help_tags(textbox)
+        self.configure_readonly_textbox(textbox)
+        return textbox
 
     def on_help_document_selected(self) -> None:
         document_name = self.help_tabs.get()
+        if document_name not in self.help_textboxes:
+            return
         self.help_document_var.set(document_name)
-        self.help_text.grid_forget()
-        self.help_text.grid(in_=self.help_tabs.tab(document_name), row=0, column=0, padx=0, pady=(0, 8), sticky="nsew")
-        render_help_markdown(self.help_text, load_help_markdown(document_name))
-        self.help_text.configure(state="normal")
+        self.help_text = self.help_textboxes[document_name]
 
     def open_copyright_link(self) -> None:
         webbrowser.open_new_tab(COPYRIGHT_URL)

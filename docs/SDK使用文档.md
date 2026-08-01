@@ -1,4 +1,4 @@
-# Desk-Emoji Python SDK 使用文档
+# Desk-Emoji MCP SDK 使用文档
 
 `desk_emoji_sdk.py` 提供 Desk-Emoji WebSocket MCP 设备的 Python 调用接口，可用于脚本、自动化测试或第三方应用集成。
 
