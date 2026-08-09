@@ -8,7 +8,6 @@ __pycache__/
 *.log
 .DS_Store
 .idea/
-.vscode/
 *.env
 *.egg-info/
 dist/
@@ -23,3 +22,9 @@ htmlcov/
 *.pytest_cache/
 .pytest_cache/
 logs/
+
+# Vibe Coding
+.codex/
+.claude/
+.vscode/
+.cursor/
